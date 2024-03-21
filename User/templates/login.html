@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <style>
+        .center {
+            text-align: center;
+            margin-top: 20%;
+        }
+        .button-container {
+            margin-top: 10px;
+        }
+        .button-container button, .button-container a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            width: 100px; /* Adjust width as needed */
+        }
+        .button-container a {
+            background-color: #3498db; /* Change background color for register button */
+        }
+        .button-container button:hover, .button-container a:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="center">
+        <h1 style="text-align: center;">分药机系统</h1>
+        <form action="" method="post">
+            {% csrf_token %}
+            <p>账号：<input type="text" name="username"></p>
+            <p>密码：<input type="password" name="password"></p>
+            <div class="button-container">
+                <button type="submit">登录</button>
+                <button type="button" onclick="window.location.href='{% url 'register' %}'">注册</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

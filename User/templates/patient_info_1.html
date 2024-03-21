@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Information</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid black;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+    <h1>人员信息</h1>
+    <table border="1">
+        <tr>
+            <th>床号</th>
+            <th>姓名</th>
+            <th>药物名称</th>
+            <th>计量</th>
+            <th>餐前/餐后</th>
+            <th>是否分药机分药</th>
+            <th>早</th>
+            <th>中</th>
+            <th>晚</th>
+            <th>夜</th>
+            <th>药物增删</th>
+            <th>人员删除</th>
+        </tr>
+        {% for patient in patients %}
+            <tr>
+                <td rowspan="{{patient.medications.count}}" id="bed_number_{{patient.id}}">{{patient.bed_number}}</td>
+                <td rowspan="{{patient.medications.count}}" id="patient_name_{{patient.id}}">{{patient.patient_name}}</td>
+                {% if patient.medications.count > 0 %}
+                    {% for medication in patient.medications.all %}
+                        <input type="hidden" name="medicationId" value="{{ medication.id }}">
+                        <td contenteditable="true" data-column-name="drug_name">{{ medication.drug_name }}</td>
+                        <td contenteditable="true" data-column-name="dosage">{{ medication.dosage }}</td>
+                        <td contenteditable="true" data-column-name="before_or_after_meal">{{ medication.before_or_after_meal }}</td>
+                        <td contenteditable="true" data-column-name="is_machine_dispensed"><input type="checkbox" name="is_machine_dispensed" {% if medication.is_machine_dispensed %}checked{% endif %}></td>
+                        <td contenteditable="true" data-column-name="morning_dosage"><input type="checkbox" name="morning_dosage" {% if medication.morning_dosage %}checked{% endif %}></td>
+                        <td contenteditable="true" data-column-name="noon_dosage"><input type="checkbox" name="noon_dosage" {% if medication.noon_dosage %}checked{% endif %}></td>
+                        <td contenteditable="true" data-column-name="evening_dosage"><input type="checkbox" name="evening_dosage" {% if medication.evening_dosage %}checked{% endif %}></td>
+                        <td contenteditable="true" data-column-name="night_dosage"><input type="checkbox" name="night_dosage" {% if medication.night_dosage %}checked{% endif %}></td>
+                        <td>
+                            <div style="display: inline-block;">
+                                <form method="POST" action="{% url 'drug_info' patient.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit">添加</button>
+                                </form>
+                            </div>
+                            <div style="display: inline-block;">
+                                <form method="POST" action="{% url 'delete_drug' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="id" value="{{ medication.id }}">
+                                    <button type="submit">删除</button>
+                                </form>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: inline-block;">
+                                <form method="POST" action="{% url 'delete_patient' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="id" value="{{ patient.id }}">
+                                    <button type="submit">删除</button>
+                                </form>
+                            </div>
+                        </td> 
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <td colspan="8">No medications</td>
+                    <td>
+                        <form method="POST" action="{% url 'drug_info' patient.id %}">
+                            {% csrf_token %}
+                            <button type="submit">添加</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'delete_patient' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ patient.id }}">
+                            <button type="submit">删除</button>
+                        </form>
+                    </td> 
+                </tr>
+                {% endif %}
+            {% endfor %}
+    </table>
+    <style>
+        .menu-buttons {
+            margin-top: 20px;
+            text-align: center;
+
+        }
+    
+        .menu-buttons button {
+            margin-right: 10px;
+        }
+    </style>
+    
+    <div class="menu-buttons">
+        <button type="button" onclick="window.location.href='{% url 'patient_info_entry' %}'">病人信息录入</button>
+        <button type="button" onclick="window.location.href='{% url 'menu' %}'">菜单</button>
+        <button type="button" onclick="window.location.href='{% url 'logout' %}'">登出</button>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // 单元格编辑完成后触发的事件
+            $('td[contenteditable=true]').blur(function() {
+                var cell = $(this);
+                var newValue = cell.text();
+                var medicationID = cell.closest('tr').find('input[name="medicationId"]').val();
+                var columnName = cell.attr('data-column-name');
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+                console.log("Medication ID:", medicationID);
+
+                // 发送AJAX请求，更新数据库
+                $.ajax({
+                    url: '/update_medication/',
+                    type: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    data: {
+                        medicationID: medicationID,
+                        columnName: columnName,
+                        newValue: newValue
+                    },
+                    success: function(data) {
+                        // 数据更新成功
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+            $('input[type="checkbox"]').on('click', function() {
+                var checkbox = $(this);
+                var isChecked = checkbox.is(':checked');
+                var cell = checkbox.closest('td');
+                var newValue = isChecked ? 'True' : 'False';
+                var medicationID = cell.closest('tr').find('input[name="medicationId"]').val();
+                var columnName = cell.attr('data-column-name');
+                var csrfToken = $('meta[name="csrf-token"]').attr('content');
+                console.log("Medication ID:", medicationID);
+
+                // 发送AJAX请求，更新数据库
+                $.ajax({
+                    url: '/update_medication/',
+                    type: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    data: {
+                        medicationID: medicationID,
+                        columnName: columnName,
+                        newValue: newValue
+                    },
+                    success: function(data) {
+                        // 数据更新成功
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+    
+</body>
+</html>

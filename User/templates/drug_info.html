@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drug Information</title>
+    <style>
+        .centered-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* 让表单在整个视口中垂直居中 */
+        }
+        .centered-form form {
+            width: 50%; /* 设置表单的宽度 */
+        }
+    </style>
+</head>
+<body>
+    <h1>Drug Information</h1>
+    <div class="centered-form">
+        <form method='POST'>
+            {% csrf_token %}
+            <input type="hidden" name="patient_id" value="{{ patient_id }}">
+            <label for="drug_name">药物名称:</label>
+            <input type="text" id="drug_name" name="drug_name" required><br><br>
+            <label for="dosage">计量:</label>
+            <input type="text" id="dosage" name="dosage" required><br><br>
+            <label for="before_or_after_meal">餐前/餐后:</label>
+            <input type="text" id="before_or_after_meal" name="before_or_after_meal" required><br><br>
+            <label for="is_machine_dispensed">是否分药机分药:</label>
+            <input type="checkbox" id="is_machine_dispensed" name="is_machine_dispensed" value="true"><br><br>
+            <label for="morning_dosage">早:</label>
+            <input type="checkbox" id="morning_dosage" name="morning_dosage" value="true"><br><br>
+            <label for="noon_dosage">中:</label>
+            <input type="checkbox" id="noon_dosage" name="noon_dosage" value="true"><br><br>
+            <label for="evening_dosage">晚:</label>
+            <input type="checkbox" id="evening_dosage" name="evening_dosage" value="true"><br><br>
+            <label for="night_dosage">夜:</label>
+            <input type="checkbox" id="night_dosage" name="night_dosage" value="true"><br><br>
+            <button type="submit">提交</button>
+            <button type="button" onclick="window.location.href='{% url 'patient_info_entry' %}'">病人信息录入</button>
+            <button type="button" onclick="window.location.href='{% url 'patient_info_view' %}'">病人信息查看</button>
+            <button type="button" onclick="window.location.href='{% url 'menu' %}'">菜单</button>
+            <button type="button" onclick="window.location.href='{% url 'logout' %}'">登出</button>
+        </form>
+    </div>
+</body>
+</html>
